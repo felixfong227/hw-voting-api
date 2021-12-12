@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  backend:
+    image: node:16
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    environment:
+      DB_USERNAME: root
+      DB_PASSWORD: SuperSecretPassword
+    ports:
+      - 8080:3000
+    command: npm run start:dev
+      
+  adminer:
+    image: adminer:4.8.1
+    ports:
+      - 8000:8080    
+     
+  db:
+    image: "postgres:13"
+    ports:
+      - 5432:5432
+    volumes:
+      - voting_app_db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=SuperSecretPassword
+      - POSTGRES_DB=myvotingapp
+      
+      
+volumes:
+  voting_app_db:

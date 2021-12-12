@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  HKIDHash    String        @id @unique
+  join_date   DateTime      @default(now())
+  Campaign    Campaign[]
+  PollOptions PollOptions[]
+  Vote        Vote[]
+}
+
+model Campaign {
+  ID            String        @id @unique @default(uuid())
+  creation_date DateTime      @default(now())
+  expire_date   DateTime
+  userHKIDHash  String
+  name          String
+  creator       User          @relation(fields: [userHKIDHash], references: [HKIDHash])
+  PollOptions   PollOptions[]
+  Vote          Vote[]
+}
+
+model PollOptions {
+  ID            String   @id @unique
+  name          String
+  description   String?
+  creation_date DateTime @default(now())
+  userHKIDHash  String
+  campaignID    String
+  Campaign      Campaign @relation(fields: [campaignID], references: [ID])
+  creator       User     @relation(fields: [userHKIDHash], references: [HKIDHash])
+  Vote          Vote[]
+
+  @@index([name], map: "PollOptions_name")
+}
+
+model Vote {
+  ID            String      @id @unique @default(uuid())
+  vote_date     DateTime    @default(now())
+  userHKIDHash  String
+  campaignID    String
+  pollOptionsID String
+  campaign      Campaign    @relation(fields: [campaignID], references: [ID])
+  option        PollOptions @relation(fields: [pollOptionsID], references: [ID])
+  voter         User        @relation(fields: [userHKIDHash], references: [HKIDHash])
+}
