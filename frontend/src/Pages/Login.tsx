@@ -17,6 +17,27 @@ function LoginPage() {
     throw new Error('The user auth context is not initialized');
   }
   
+  function clientValidaction() {
+    const regex = /(^\w\d|^\w\w)(\d)+\((\w|\d)\)/;
+    
+    if(isNil(inputHKID)) {
+      setErrorMsg('Please input your HKID');
+      return false;
+    }
+    
+    if(inputHKID.length < 8) {
+      setErrorMsg("Your HKID is too short");
+      return false;
+    }
+    
+    if(!regex.test(inputHKID)) {
+      setErrorMsg('Invalid HKID format');
+      return false;
+    }
+    
+    return true;
+  }
+  
   function promptError(msg: string) {
     setErrorMsg(msg);
     setTimeout(() => setErrorMsg(null), ERROR_PROMPT_TIME);
@@ -68,7 +89,8 @@ function LoginPage() {
   }
   
   function loginButtonOnClick() {
-    sendUserCreateRequest(inputHKID ?? '');
+    const valid = clientValidaction();
+    if(valid) sendUserCreateRequest(inputHKID ?? '');
   }
 
   return (
