@@ -1,6 +1,6 @@
 import { Campaign } from ".prisma/client";
-import { Injectable } from "@nestjs/common";
-import { isNil, isNumber, uniq } from "lodash";
+import { Injectable, Logger } from "@nestjs/common";
+import { isEmpty, isNil, isNumber, result, uniq } from "lodash";
 import { DuplicatedCampaignName, FoundDuplicatedPollOptions } from "src/Errors";
 import { PrismaServiceV2 } from "src/prisma/prisma.service";
 import { CreateNewCampaignDTO } from "./dtos/Campaign.dto";
@@ -73,8 +73,9 @@ export class CampaignService {
 
   async getAListOfCampaigns(
     limit: number | string,
-    skip: number | string
-  ): Promise<Campaign[]> {
+    skip: number | string,
+    HKIDHash?: string,
+  ) {
     const intLimit = isNumber(limit) ? limit : parseInt(limit);
     const intSkip = isNumber(skip) ? skip : parseInt(skip);
 
@@ -85,7 +86,31 @@ export class CampaignService {
         creator: true,
       },
     });
-    return results;
+    
+    console.log(HKIDHash)
+    const yourVotesOnSaidCampaign = await Promise.all(results.map(async (campaign) => {
+      const yourVote = await this.prisma.vote.findFirst({
+        where: {
+          campaign: {
+            ID: campaign.ID,
+          },
+          voter: {
+            HKIDHash: HKIDHash || "",
+          }
+        }
+      });
+      if(isEmpty(yourVote)) {
+        return {
+          ...campaign,
+          voted: false,
+        }
+      }
+      return {
+        ...campaign,
+        voted: true,
+      }
+    }));
+    return yourVotesOnSaidCampaign;
   }
 
   async getOneCampaign(campaignID: string): Promise<Campaign> {

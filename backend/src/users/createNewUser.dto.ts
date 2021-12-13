@@ -1,9 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 import { IsString, Matches, MinLength, Validate } from "class-validator";
 import { IsHKID } from "src/Utils/validators/IsHKID";
 
 export class CreateNewUserDTO {
   @IsString()
+  @Transform((value) => value.toUpperCase())
   @MinLength(8, {
     message: "HKID must have at least 8 characters long",
   })

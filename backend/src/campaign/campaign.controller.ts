@@ -144,9 +144,12 @@ export class CampaignController {
     type: GetAllCampaignResponse,
     isArray: true,
   })
-  async getAListOfCampaigns(@Query() query: GetListOfCampainsParams) {
+  async getAListOfCampaigns(
+    @Query() query: GetListOfCampainsParams,
+    @Headers("x-hkidhash") hkidHash: string
+  ) {
     const { limit = 10, skip = 0 } = query;
-    return this.campaignSservice.getAListOfCampaigns(limit, skip);
+    return this.campaignSservice.getAListOfCampaigns(limit, skip, hkidHash);
   }
 
   @Get("/:campaignID")

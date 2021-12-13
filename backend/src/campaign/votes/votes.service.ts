@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import * as dayjs from "dayjs";
 import { isEmpty, isNil } from "lodash";
-import { PollOptionsDoesNotBelongToCampaign, UserAlreadyVoted } from "src/Errors";
+import { PollOptionsDoesNotBelongToCampaign, UserAlreadyVoted, VoteAreStillPrivate } from "src/Errors";
 import { PrismaServiceV2 } from "src/prisma/prisma.service";
 
 @Injectable()
@@ -12,20 +12,29 @@ export class VotesService {
     if (isNil(campaignID)) {
       return new BadRequestException("Campaign ID is required");
     }
-
-    const result = await this.prisma.vote.findMany({
+    
+    // check if the campaign is still open (not closed or expired)
+    const isCampaignOpen = await this.isVotingAllowed(campaignID);
+    
+    if(isCampaignOpen) {
+      throw new VoteAreStillPrivate();
+    }
+    
+    const result = await this.prisma.pollOptions.findMany({
       where: {
-        campaignID,
-      },
-      include: {
-        voter: true,
-        option: {
-          include: {
-            creator: true,
-          },
+        Campaign: {
+          ID: campaignID,
         },
       },
+      include: {
+        Vote: {
+          include: {
+            voter: true,
+          }
+        }
+      }
     });
+    
     return result;
   }
 
