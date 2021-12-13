@@ -1,7 +1,7 @@
 import { Campaign } from ".prisma/client";
 import { Injectable } from "@nestjs/common";
-import { isNil, isNumber } from "lodash";
-import { DuplicatedCampaignName } from "src/Errors";
+import { isNil, isNumber, uniq } from "lodash";
+import { DuplicatedCampaignName, FoundDuplicatedPollOptions } from "src/Errors";
 import { PrismaServiceV2 } from "src/prisma/prisma.service";
 import { CreateNewCampaignDTO } from "./dtos/Campaign.dto";
 import { v4 as uuidv4 } from 'uuid';
@@ -27,6 +27,13 @@ export class CampaignService {
 
     if (!isNil(oldCampaign)) {
       throw new DuplicatedCampaignName();
+    }
+    
+    // check if the options is unique
+    const uniqueOptions = uniq(pollOptions);
+    
+    if(uniqueOptions.length !== pollOptions.length) {
+      throw new FoundDuplicatedPollOptions();
     }
     
     const campaignID = uuidv4();

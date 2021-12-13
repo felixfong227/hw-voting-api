@@ -61,3 +61,10 @@ export class PollOptionsDoesNotBelongToCampaign extends BadRequestException {
     super(PollOptionsDoesNotBelongToCampaign.message);
   }
 }
+
+export class FoundDuplicatedPollOptions extends BadRequestException {
+  static message = "Found duplicated poll options";
+  constructor() {
+    super(FoundDuplicatedPollOptions.message);
+  }
+}
