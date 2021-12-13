@@ -16,7 +16,15 @@
 - Makefile (Latest)
 - Modern Browser (Latest Chrome/Firefox)
 
-## Getting started
+# Quick start guide
+
+For the quickest and painless way to get started, you can run `make bootstrap` to install all the dependencies and start both the fronend and backend services.
+
+# Development
+
+### For the backend, you are running the service for the very first time, please run this command to bootstrap the service:
+
+`make db_bootstrap`
 
 Install the dependencies for backend and frontend:
 
@@ -26,7 +34,13 @@ Install the dependencies for backend and frontend:
 
 3) Run ```docker-compose up``` to start the backend and PostgresSQL.
 
-4) To use/update the Prisma schema run: `npm run prisma:db:push --prefix ./backend`
+---
 
 
-and once the backend is running, you can run the frontend with ```npm run start``` to kick start the frontend.
+To use/update the Prisma schema run: `npm run prisma:db:push --prefix ./backend`
+
+Or you you are actively developing the backend, run: `npx prisma db push`
+
+---
+
+Once the backend is up running, you can run the frontend with `make fn` to kick start the frontend.
