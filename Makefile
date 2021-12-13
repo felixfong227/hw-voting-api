@@ -5,11 +5,11 @@ db_bootstrap:
 	
 bootstrap:
 	cd frontend &&\
-	# npm ci &&\
+	npm ci &&\
 	cd ../backend &&\
-	# npm ci &&\
+	npm ci &&\
 	cd ../ &&\
-	# make db_bootstrap &&\
+	make db_bootstrap &&\
 	make bn; make fn
 	
 fn:
