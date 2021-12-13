@@ -92,6 +92,12 @@ function CreatePollOptions({
         
         const uniqueOptions = uniqWith(normalizedPollOptions, isEqual);
         
+        if (
+            normalizedPollOptions.every(option => isEmpty(option.name))
+        ) return false;
+        
+        
+        if(normalizedPollOptions.length <= 0) return false;
         if(uniqueOptions.length !== normalizedPollOptions.length) {
             setInputError("Options cannot be duplicated");
             hasError = true;
@@ -257,6 +263,7 @@ export function CreateNewCampaign() {
             </Typography>
             
             {
+                // error that are coming from the server
                 error ? (
                     (() => {
                         return <Alert severity="error">Fail to create a new campaign: <b>{error.message}</b></Alert>
@@ -265,6 +272,7 @@ export function CreateNewCampaign() {
             }
 
             {
+                // error that are coming from the client (client validation)
                 clientError ? (
                     (() => {
                         return <Alert severity="error">{clientError}</Alert>
