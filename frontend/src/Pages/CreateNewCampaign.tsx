@@ -116,7 +116,7 @@ function CreatePollOptions({
         const option = pollOptions[idx];
 
         render.push(
-            <Fragment>
+            <Fragment key={optionIndex}>
                 <Box mt={2} />
                 <TextField 
                     key={`poll-option-${idx}`}
@@ -129,7 +129,7 @@ function CreatePollOptions({
                     disabled={isSending}
                 />
                 {
-                        (optionIndex > 0) ? (
+                        (optionIndex > 1) ? (
                                 <IconButton onClick={() => deleteOption(Number(idx))} disabled={isSending}>
                                     <DeleteIcon />
                                 </IconButton>
@@ -187,7 +187,7 @@ export function CreateNewCampaign() {
     const [ expireDateError, setExpireDateError ] = useState('');
     const navigate = useNavigate();
     
-    const [ pollOptions, setPollOptions ] = useState<PollOption>({1: { name: "" }});
+    const [ pollOptions, setPollOptions ] = useState<PollOption>({0: { name: "" }, 1: {name: ""}});
     
     const oneWeekLater = dayjs().add(1, 'week');
     

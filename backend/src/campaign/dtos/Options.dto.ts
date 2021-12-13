@@ -48,8 +48,8 @@ export class CreateNewCampaignOptionDTO {
   @ValidateNested({ each: true })
   @Type(() => CreateNewCampaignOption)
   @IsArray()
-  @ArrayMinSize(1, {
-    message: "At least one option must be provided",
+  @ArrayMinSize(2, {
+    message: "At least two option must be provided",
   })
   pollOptions: CreateNewCampaignOption[];
 }
