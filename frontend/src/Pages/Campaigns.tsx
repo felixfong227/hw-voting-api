@@ -4,13 +4,20 @@ import { isArray } from "lodash";
 import CampaignCard from "../Components/CampaignCard";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/system";
+import { Fragment, useContext } from "react";
+import { AuthContext } from "../Context/Auth";
 
 export function CampaignsPage() {
     
     const navigate = useNavigate();
     
+    const { HKIDHash } = useContext(AuthContext);
+    
     const { data, error, isLoading } = useFetch('http://localhost:8080/campaigns', {
         method: 'GET',
+        headers: {
+            'X-HKIDHash': HKIDHash ?? '',
+        }
     }, {json: true});
 
     return (
@@ -43,7 +50,13 @@ export function CampaignsPage() {
                     }
                     
                     return data.map((campaign: any) => {
-                        return <CampaignCard key={campaign.ID} campaign={campaign} />
+                        return (
+                            <Fragment>
+                                <Box mt={2} />
+                                    <CampaignCard key={campaign.ID} campaign={campaign} />
+                                <Box mt={2} />
+                            </Fragment>
+                        )
                     });
                 })()
             }
