@@ -14,7 +14,7 @@ Install the dependencies for backend and frontend:
 
 Installing backend dependencies run: `npm install --prefix ./backend`
 
-Installing backend dependencies run: `npm install --prefix ./frontend`
+Installing frontend dependencies run: `npm install --prefix ./frontend`
 
 Run ```docker-compose up``` to start the backend and PostgresSQL.
 
