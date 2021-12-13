@@ -8,6 +8,14 @@
 - React
 - NestJS
 
+# Reqiurements
+
+- Docker (Latest)
+- Docker-Compose (Latest)
+- NodeJS (Latest)
+- Makefile (Latest)
+- Modern Browser (Latest Chrome/Firefox)
+
 ## Getting started
 
 Install the dependencies for backend and frontend:
