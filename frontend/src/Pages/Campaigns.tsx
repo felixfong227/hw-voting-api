@@ -3,6 +3,7 @@ import { useFetch } from "react-async";
 import { isArray } from "lodash";
 import CampaignCard from "../Components/CampaignCard";
 import { useNavigate } from "react-router-dom";
+import { Box } from "@mui/system";
 
 export function CampaignsPage() {
     
@@ -14,11 +15,14 @@ export function CampaignsPage() {
 
     return (
         <Container maxWidth="md">
-            <br />
             <Typography variant="h4">Campaigns</Typography>
-            <br />
-            <br />
+            
+            <Box mt={2} />
+            
             <Button onClick={() => navigate('/new/campaign')} variant="contained" color="primary">Create New Campaign</Button>
+
+            <Box mt={2} />
+
             {
                 (() => {
                     
