@@ -1,13 +1,14 @@
-import { LocalizationProvider, DatePicker, DesktopDatePicker } from "@mui/lab";
-import { Typography, Alert, TextField, Button, Box, CircularProgress, Container } from "@mui/material";
+import { LocalizationProvider, DesktopDatePicker } from "@mui/lab";
+import { Typography, Alert, TextField, Button, Box, CircularProgress, Container, IconButton } from "@mui/material";
 import dayjs from "dayjs";
-import { isEmpty } from "lodash";
+import { isEmpty, isEqual, uniqWith } from "lodash";
 import { useState, useContext, Fragment } from "react";
 import { useFetch } from "react-async";
 import { AuthContext } from "../Context/Auth";
 import DateAdapter from '@mui/lab/AdapterDayjs';
 import AddIcon from '@mui/icons-material/Add';
 import { useNavigate } from "react-router";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 let optoinCounter = 1;
 
@@ -20,21 +21,32 @@ type PollOption = {
     [idx: number]: Option;
 }
 
-function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRequest, isSending }: { pollOptions: PollOption, setPollOptions: (pollOptions: PollOption) => void, sendCampaignCreationRequest: Function, isSending: boolean }) {
+function CreatePollOptions({
+    pollOptions,
+    setPollOptions, 
+    sendCampaignCreationRequest,
+    isSending
+}: { 
+    pollOptions: PollOption, 
+    setPollOptions: (pollOptions: PollOption) => void,
+    sendCampaignCreationRequest: Function,
+    isSending: boolean
+}) {
     
     const render: JSX.Element[] = [];
+    const [ inputError, setInputError ] = useState<string>("");
     let isOptionValid = true;
+    let optionIndex = 0;
     
     function updateSingleOption(idx: number, option: Option) {
         const newPollOptions = { ...pollOptions, [idx]: option };
         setPollOptions(newPollOptions);
-        pollOptions = newPollOptions;
     }
 
     function inputBoxOnChange(idx: number, e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
         const value = e.target.value;
         const option = pollOptions[idx];
-        option.name = value.trim();
+        option.name = value;
         updateSingleOption(idx, option);
     }
     
@@ -48,6 +60,7 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
         for(const key in pollOptions) {
             const option = pollOptions[key];
             
+            option.name = option.name.trim();
             option.error = "";
             
             // check if input is empty
@@ -67,6 +80,22 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
             updateSingleOption(parseInt(key), pollOptions[key]);
             
         }
+
+        const normalizedPollOptions = [];
+        
+        for(const idx in pollOptions) {
+            const option = pollOptions[idx];
+            normalizedPollOptions.push({
+                name: option.name,
+            });
+        }
+        
+        const uniqueOptions = uniqWith(normalizedPollOptions, isEqual);
+        
+        if(uniqueOptions.length !== normalizedPollOptions.length) {
+            setInputError("Options cannot be duplicated");
+            hasError = true;
+        }
         
         if(hasError) return isOptionValid = false;
         return isOptionValid = true;
@@ -75,6 +104,12 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
     function submit() {
         submitValidation();
         sendCampaignCreationRequest(isOptionValid);
+    }
+    
+    function deleteOption(idx: number) {
+        const newPollOptions = { ...pollOptions };
+        delete newPollOptions[idx];
+        setPollOptions(newPollOptions);
     }
     
     for(const idx in pollOptions) {
@@ -93,13 +128,26 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
                     helperText={option.error}
                     disabled={isSending}
                 />
+                {
+                        (optionIndex > 0) ? (
+                                <IconButton onClick={() => deleteOption(Number(idx))} disabled={isSending}>
+                                    <DeleteIcon />
+                                </IconButton>
+                        ): null
+                }
                 <Box mt={2} />
             </Fragment>
         );
+        optionIndex++;
     }
     
     return (
         <Fragment>
+            {
+                inputError ? (
+                    <Alert severity="error">{inputError}</Alert>
+                ): null
+            }
             {render}
             <Button disabled={isSending} variant="contained" color="secondary" onClick={() => addOption()}>
                 <AddIcon />
@@ -194,6 +242,12 @@ export function CreateNewCampaign() {
         if(!isOptionValid) return false;
         run();
     }
+    
+    function promptError(msg: string) {
+        console.log(msg);
+        setClientError("You fucked up UwU");
+    }
+
 
     return (
         <Container>
