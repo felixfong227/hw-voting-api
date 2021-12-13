@@ -12,10 +12,13 @@
 
 Install the dependencies for backend and frontend:
 
-Installing backend dependencies run: `npm install --prefix ./backend`
+1) Installing backend dependencies run: `npm install --prefix ./backend`
 
-Installing frontend dependencies run: `npm install --prefix ./frontend`
+2) Installing frontend dependencies run: `npm install --prefix ./frontend`
 
-Run ```docker-compose up``` to start the backend and PostgresSQL.
+3) Run ```docker-compose up``` to start the backend and PostgresSQL.
+
+4) To use/update the Prisma schema run: `npm run prisma:db:push --prefix ./backend`
+
 
 and once the backend is running, you can run the frontend with ```npm run start``` to kick start the frontend.
