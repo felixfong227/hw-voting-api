@@ -60,24 +60,19 @@ export class VotesService {
       throw new UserAlreadyVoted();
     }
 
-    // check if the input options ID does belong to the campaign
     const isOptionBelongToCampaign = await this.prisma.pollOptions.findFirst({
-      select: {
-        ID: true,
-      },
       where: {
+        ID: optionsID,
         Campaign: {
           ID: campaignID,
-          PollOptions: {
-            every: {
-              ID: optionsID,
-            },
-          },
-        },
+        }
       },
+      select: {
+        ID: true,
+      }
     });
 
-    if (isEmpty(isOptionBelongToCampaign)) {
+    if (isNil(isOptionBelongToCampaign)) {
       throw new PollOptionsDoesNotBelongToCampaign();
     }
 
