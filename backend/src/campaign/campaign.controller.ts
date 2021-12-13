@@ -133,6 +133,7 @@ export class CampaignController {
       userHKIDHash: newCampaignRecord.userHKIDHash,
       name: newCampaignRecord.name,
       creator: newCampaignRecord.creator,
+      PollOptions: newCampaignRecord.PollOptions,
     };
   }
 
@@ -194,7 +195,7 @@ export class CampaignController {
     }
     const { campaignID } = params;
     const result = this.optionsService.createManyOptions(
-      body.data,
+      body.pollOptions,
       campaignID,
       hkidHash
     );

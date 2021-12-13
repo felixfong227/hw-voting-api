@@ -4,13 +4,15 @@ import { isNil, isNumber } from "lodash";
 import { DuplicatedCampaignName } from "src/Errors";
 import { PrismaServiceV2 } from "src/prisma/prisma.service";
 import { CreateNewCampaignDTO } from "./dtos/Campaign.dto";
+import { v4 as uuidv4 } from 'uuid';
+import { MakePollOptionsCompositeId } from "src/Utils/validators/MakePollOptionsComId";
 
 @Injectable()
 export class CampaignService {
   constructor(private readonly prisma: PrismaServiceV2) {}
 
   async createNewCampaign(dto: CreateNewCampaignDTO, HKIDHash: string) {
-    const { name, expireDate } = dto;
+    const { name, expireDate, pollOptions } = dto;
 
     // check if this user have the same campaign name already
     const oldCampaign = await this.prisma.campaign.findFirst({
@@ -26,9 +28,12 @@ export class CampaignService {
     if (!isNil(oldCampaign)) {
       throw new DuplicatedCampaignName();
     }
+    
+    const campaignID = uuidv4();
 
     return await this.prisma.campaign.create({
       data: {
+        ID: campaignID,
         expire_date: expireDate,
         name,
         creator: {
@@ -36,9 +41,25 @@ export class CampaignService {
             HKIDHash,
           },
         },
+        PollOptions: {
+          createMany: {
+            data: pollOptions.map((option) => {
+              return {
+                ID: MakePollOptionsCompositeId(campaignID, option.name),
+                name: option.name,
+                userHKIDHash: HKIDHash,
+              }
+            }),
+          }
+        }
       },
       include: {
         creator: true,
+        PollOptions: {
+          include: {
+            creator: true,
+          }
+        }
       }
     });
   }

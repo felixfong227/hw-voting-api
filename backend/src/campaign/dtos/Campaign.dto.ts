@@ -1,18 +1,21 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
+import { Transform, Type } from "class-transformer";
 import {
+  ArrayMinSize,
+  IsArray,
   IsDateString,
   IsNotEmpty,
   IsString,
   MaxLength,
   Validate,
+  ValidateNested,
 } from "class-validator";
 import { CreateNewUserResponse } from "src/users/createNewUser.dto";
 import {
   isExpireDateBeforeToday,
   IsExpireDateInRange,
 } from "src/Utils/validators/IsExpired";
-import { GetOneOptionsResponse } from "./Options.dto";
+import { CreateNewCampaignOption, GetOneOptionsResponse } from "./Options.dto";
 import { GetOneVoteResponse } from "./Vote.dto";
 
 export class CreateNewCampaignDTO {
@@ -35,6 +38,18 @@ export class CreateNewCampaignDTO {
   @Validate(isExpireDateBeforeToday)
   @IsNotEmpty()
   expireDate: Date;
+  
+  @ApiProperty({
+    type: CreateNewCampaignOption,
+    isArray: true,
+  })
+  @ValidateNested({ each: true })
+  @Type(() => CreateNewCampaignOption)
+  @IsArray()
+  @ArrayMinSize(1, {
+    message: "At least one option must be provided",
+  })
+  pollOptions: CreateNewCampaignOption[];
 }
 
 export class CreateNewCampaignResponse {
@@ -50,6 +65,11 @@ export class CreateNewCampaignResponse {
   userHKIDHash: string;
   @ApiProperty()
   creator: CreateNewUserResponse;
+  @ApiProperty({
+    type: GetOneOptionsResponse,
+    isArray: true,
+  })
+  PollOptions: GetOneOptionsResponse[];
 }
 
 export class GetOneCampaignResponse {

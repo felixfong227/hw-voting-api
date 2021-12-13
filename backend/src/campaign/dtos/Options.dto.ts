@@ -18,7 +18,7 @@ export class GetOneOptionsResponse {
   @ApiProperty()
   description?: string;
   @ApiProperty()
-  creation_date: string;
+  creation_date: Date;
   @ApiProperty()
   userHKIDHash: string;
   @ApiProperty()
@@ -51,5 +51,5 @@ export class CreateNewCampaignOptionDTO {
   @ArrayMinSize(1, {
     message: "At least one option must be provided",
   })
-  data: CreateNewCampaignOption[];
+  pollOptions: CreateNewCampaignOption[];
 }
