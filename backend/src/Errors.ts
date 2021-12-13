@@ -68,3 +68,10 @@ export class FoundDuplicatedPollOptions extends BadRequestException {
     super(FoundDuplicatedPollOptions.message);
   }
 }
+
+export class VoteAreStillPrivate extends ForbiddenException {
+  static message = "Campaing's vote reults are still private, wait until campaign's end date";
+  constructor() {
+    super(VoteAreStillPrivate.message);
+  }
+}
