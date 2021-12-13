@@ -4,7 +4,7 @@ import {
   ValidatorConstraintInterface,
   ValidationArguments,
 } from "class-validator";
-import * as dayjs from "dayjs";
+import dayjs from "dayjs";
 import { isNil } from "lodash";
 
 @ValidatorConstraint({ name: "isExpireDateBeforeToday", async: false })

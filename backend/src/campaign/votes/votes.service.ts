@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
-import * as dayjs from "dayjs";
+import dayjs from "dayjs";
 import { isEmpty, isNil } from "lodash";
 import { PollOptionsDoesNotBelongToCampaign, UserAlreadyVoted, VoteAreStillPrivate } from "src/Errors";
 import { PrismaServiceV2 } from "src/prisma/prisma.service";
