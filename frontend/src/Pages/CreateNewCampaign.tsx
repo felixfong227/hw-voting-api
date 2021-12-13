@@ -1,5 +1,5 @@
 import { LocalizationProvider, DatePicker } from "@mui/lab";
-import { Typography, Alert, TextField, Button, Box } from "@mui/material";
+import { Typography, Alert, TextField, Button, Box, CircularProgress } from "@mui/material";
 import dayjs from "dayjs";
 import { isEmpty } from "lodash";
 import { useState, useContext, Fragment } from "react";
@@ -7,6 +7,8 @@ import { useFetch } from "react-async";
 import { AuthContext } from "../Context/Auth";
 import DateAdapter from '@mui/lab/AdapterDayjs';
 import AddIcon from '@mui/icons-material/Add';
+import { css } from '@emotion/react';
+import { useNavigate } from "react-router";
 
 let optoinCounter = 1;
 
@@ -19,16 +21,18 @@ type PollOption = {
     [idx: number]: Option;
 }
 
-function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRequest }: { pollOptions: PollOption, setPollOptions: (pollOptions: PollOption) => void, sendCampaignCreationRequest: Function }) {
+function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRequest, isSending }: { pollOptions: PollOption, setPollOptions: (pollOptions: PollOption) => void, sendCampaignCreationRequest: Function, isSending: boolean }) {
     
     const render: JSX.Element[] = [];
     let isOptionValid = true;
     
     function updateSingleOption(idx: number, option: Option) {
-        setPollOptions({ ...pollOptions, [idx]: option });
+        const newPollOptions = { ...pollOptions, [idx]: option };
+        setPollOptions(newPollOptions);
+        pollOptions = newPollOptions;
     }
-    
-    function update(idx: number, e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
+
+    function inputBoxOnChange(idx: number, e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) {
         const value = e.target.value;
         const option = pollOptions[idx];
         option.name = value.trim();
@@ -40,8 +44,7 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
         updateSingleOption(optoinCounter, { name: "" });
     }
     
-    function validate() {
-        
+    function submitValidation() {
         for(const key in pollOptions) {
             const option = pollOptions[key];
             
@@ -53,8 +56,6 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
                 updateSingleOption(parseInt(key), pollOptions[key]);
                 return isOptionValid = false;
             }
-            
-            // check if input is unique
             
             // check if input is less then 50 characters
             if(option.name.length > 50) {
@@ -71,11 +72,8 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
     }
     
     function submit() {
-        validate();
-        if(!isOptionValid) {
-            return;
-        }
-        console.log('submitting')
+        submitValidation();
+        sendCampaignCreationRequest(isOptionValid);
     }
     
     for(const idx in pollOptions) {
@@ -89,9 +87,10 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
                     placeholder="Option value"
                     value={option.name}
                     variant="standard" 
-                    onChange={(e) => update(Number(idx), e)}
+                    onChange={(e) => inputBoxOnChange(Number(idx), e)}
                     error={option.error ? true : false}
                     helperText={option.error}
+                    disabled={isSending}
                 />
                 <Box mt={2} />
             </Fragment>
@@ -101,13 +100,30 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
     return (
         <Fragment>
             {render}
-            <Button variant="contained" color="secondary" onClick={() => addOption()}>
+            <Button disabled={isSending} variant="contained" color="secondary" onClick={() => addOption()}>
                 <AddIcon />
             </Button>
             <Box mt={2} />
-            <Button variant="contained" color="primary" onClick={() => submit()}>
+            <Button
+                variant="contained"
+                color="primary"
+                onClick={() => submit()}
+                disabled={isSending}
+            >
                 Submit
             </Button>
+            {
+                isSending ? (
+                    <Fragment>
+                        <CircularProgress 
+                            size={20}
+                            style={{
+                                marginLeft: '10px',
+                            }}
+                        />
+                    </Fragment>
+                ) : null
+            }
         </Fragment>
     );
     
@@ -119,12 +135,22 @@ export function CreateNewCampaign() {
     const { HKIDHash } = useContext(AuthContext);
     const [ name, setName ] = useState('');
     const [ clientError, setClientError ] = useState('');
+    const navigate = useNavigate();
     
     const [ pollOptions, setPollOptions ] = useState<PollOption>({1: { name: "" }});
     
     const oneWeekLater = dayjs().add(1, 'week');
     
-    const { error, run } = useFetch<any>('http://localhost:8080/campaigns/create', {
+    const normalizedPollOptions = [];
+    
+    for(const idx in pollOptions) {
+        const option = pollOptions[idx];
+        normalizedPollOptions.push({
+            name: option.name,
+        });
+    }
+    
+    const { error, run, isLoading } = useFetch<any>('http://localhost:8080/campaigns/create', {
         method: 'POST',
         headers: {
             'X-HKIDHash': HKIDHash ?? '',
@@ -134,10 +160,11 @@ export function CreateNewCampaign() {
         body: JSON.stringify({
             name,
             expireDate: expireDate.toISOString(),
+            pollOptions: normalizedPollOptions,
         }),
-    }, { json: true });
+    }, { json: true, onResolve: () => navigate('/') });
     
-    function sendCampaignCreationRequest() {
+    function sendCampaignCreationRequest(isOptionValid: boolean) {
         const trimedName = name.trim();
         setClientError('');
         setName(trimedName);
@@ -153,6 +180,7 @@ export function CreateNewCampaign() {
             setClientError('Expire date cannot be before today');
             return;
         }
+        if(!isOptionValid) return false;
         run();
     }
 
@@ -179,7 +207,12 @@ export function CreateNewCampaign() {
                 ) : null
             }
             
-            <TextField value={name} onChange={target => setName(target.target.value ?? '')} label="Campaign Name" variant="outlined"></TextField>
+            <TextField value={name} 
+                onChange={target => setName(target.target.value ?? '')}
+                label="Campaign Name"
+                variant="outlined" 
+                disabled={isLoading}
+            />
             <LocalizationProvider dateAdapter={DateAdapter}>
                 <DatePicker
                     renderInput={(props) => <TextField {...props} />}
@@ -189,12 +222,18 @@ export function CreateNewCampaign() {
                     }}
                     maxDate={oneWeekLater}
                     minDate={dayjs()}
+                    disabled={isLoading}
                 />
             </LocalizationProvider>
             
             <Box mt={2} />
             
-            <CreatePollOptions pollOptions={pollOptions} setPollOptions={setPollOptions} sendCampaignCreationRequest={sendCampaignCreationRequest} />
+            <CreatePollOptions
+                pollOptions={pollOptions}
+                setPollOptions={setPollOptions}
+                sendCampaignCreationRequest={sendCampaignCreationRequest}
+                isSending={isLoading}
+            />
             
             {/* <Button disabled={isLoading} variant="contained" color="primary" onClick={_ => sendCampaignCreationRequest()}>Create</Button> */}
         </Fragment>
