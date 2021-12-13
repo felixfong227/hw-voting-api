@@ -1,5 +1,5 @@
-import { LocalizationProvider, DatePicker } from "@mui/lab";
-import { Typography, Alert, TextField, Button, Box, CircularProgress } from "@mui/material";
+import { LocalizationProvider, DatePicker, DesktopDatePicker } from "@mui/lab";
+import { Typography, Alert, TextField, Button, Box, CircularProgress, Container } from "@mui/material";
 import dayjs from "dayjs";
 import { isEmpty } from "lodash";
 import { useState, useContext, Fragment } from "react";
@@ -7,7 +7,6 @@ import { useFetch } from "react-async";
 import { AuthContext } from "../Context/Auth";
 import DateAdapter from '@mui/lab/AdapterDayjs';
 import AddIcon from '@mui/icons-material/Add';
-import { css } from '@emotion/react';
 import { useNavigate } from "react-router";
 
 let optoinCounter = 1;
@@ -45,6 +44,7 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
     }
     
     function submitValidation() {
+        let hasError = false;
         for(const key in pollOptions) {
             const option = pollOptions[key];
             
@@ -54,20 +54,21 @@ function CreatePollOptions({ pollOptions, setPollOptions, sendCampaignCreationRe
             if(isEmpty(option.name)) {
                 pollOptions[key].error = "Option cannot be empty";
                 updateSingleOption(parseInt(key), pollOptions[key]);
-                return isOptionValid = false;
+                hasError = true;
             }
             
             // check if input is less then 50 characters
             if(option.name.length > 50) {
                 pollOptions[key].error = "Option cannot be more then 50 characters";
                 updateSingleOption(parseInt(key), pollOptions[key]);
-                return isOptionValid = false;
+                hasError = true;
             }
             
             updateSingleOption(parseInt(key), pollOptions[key]);
             
         }
         
+        if(hasError) return isOptionValid = false;
         return isOptionValid = true;
     }
     
@@ -135,11 +136,21 @@ export function CreateNewCampaign() {
     const { HKIDHash } = useContext(AuthContext);
     const [ name, setName ] = useState('');
     const [ clientError, setClientError ] = useState('');
+    const [ expireDateError, setExpireDateError ] = useState('');
     const navigate = useNavigate();
     
     const [ pollOptions, setPollOptions ] = useState<PollOption>({1: { name: "" }});
     
     const oneWeekLater = dayjs().add(1, 'week');
+    
+    function updateExpireDate(newDate: dayjs.Dayjs | null) {
+        if(!newDate) return setExpireDateError("Expire date cannot be empty");
+        if(!newDate.isValid()) return setExpireDateError("Invalid date");
+        if(newDate.isAfter(oneWeekLater)) return setExpireDateError("Expire date cannot be more than one week later");
+        if(newDate.isBefore(dayjs())) return setExpireDateError("Expire date cannot be before today");
+        setExpireDateError("");
+        setExpireDate(newDate);
+    }
     
     const normalizedPollOptions = [];
     
@@ -185,7 +196,7 @@ export function CreateNewCampaign() {
     }
 
     return (
-        <Fragment>
+        <Container>
 
             <Typography variant="h6">
                 Create new campaign
@@ -214,12 +225,11 @@ export function CreateNewCampaign() {
                 disabled={isLoading}
             />
             <LocalizationProvider dateAdapter={DateAdapter}>
-                <DatePicker
-                    renderInput={(props) => <TextField {...props} />}
+                <DesktopDatePicker
+                    renderInput={(props) => <TextField {...props} error={expireDateError ? true : false} helperText={expireDateError ? expireDateError : ''} />}
+                    inputFormat="DD/MM/YYYY"
                     value={expireDate}
-                    onChange={(newValue) => {
-                        setExpireDate(newValue ?? dayjs())
-                    }}
+                    onChange={(newValue) => updateExpireDate(newValue)}
                     maxDate={oneWeekLater}
                     minDate={dayjs()}
                     disabled={isLoading}
@@ -236,6 +246,6 @@ export function CreateNewCampaign() {
             />
             
             {/* <Button disabled={isLoading} variant="contained" color="primary" onClick={_ => sendCampaignCreationRequest()}>Create</Button> */}
-        </Fragment>
+        </Container>
     );
 }

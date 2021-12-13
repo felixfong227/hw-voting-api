@@ -78,7 +78,7 @@ function LoginPage() {
           }
           <Typography>Please Enter Your HKID</Typography>
           <br />
-          <TextField value={inputHKID ?? ""} onChange={(e) => setInputHKID(e.target.value)} required label="HKID" />
+          <TextField value={inputHKID ?? ""} onChange={(e) => setInputHKID(e.target.value)} helperText="Example: A1234567(8)" required label="HKID" />
           <br />
           <br />
           <Button disabled={isLoading} variant="contained" onClick={_ => loginButtonOnClick()}>Login</Button>
